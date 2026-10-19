@@ -15,6 +15,8 @@ import edu.ucsb.cs156.example.repositories.UCSBOrganizationRepository;
 import edu.ucsb.cs156.example.repositories.UserRepository;
 import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -144,5 +146,29 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
     String expectedJson = mapper.writeValueAsString(sky);
     String responseString = response.getResponse().getContentAsString();
     assertEquals(expectedJson, responseString);
+  }
+
+  // Get Mapping of where you get single record by orgCode
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void test_that_logged_in_user_can_get_by_id_when_the_id_does_not_exist() throws Exception {
+
+    // arrange
+
+    when(ucsbOrganizationRepository.findById(eq("ZPR"))).thenReturn(Optional.empty());
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/UCSBOrganization").param("orgCode", "ZPR"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    // assert
+
+    verify(ucsbOrganizationRepository, times(1)).findById(eq("ZPR"));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBOrganization with id ZPR not found", json.get("message"));
   }
 }
