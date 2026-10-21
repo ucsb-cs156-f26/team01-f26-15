@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f26/team01-f26-15
 owner: ucsb-cs156-f26
 repo_name: team01-f26-15
-pull_requests: [{"author":{"id":"U_kgDOBZ7jXA","is_bot":false,"login":"Supermonters","name":"Chi Dung Nguyen"},"headRefName":"CDN-MenuItemReview-create-db","number":70,"title":"feat: add MenuItemReview database table","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/70"}]
+pull_requests: [{"author":{"id":"U_kgDOBZ7jXA","is_bot":false,"login":"Supermonters","name":"Chi Dung Nguyen"},"headRefName":"CDN-MenuItemReview-post-get","number":71,"title":"Add MenuItemReview GET and POST endpoints","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/71"},{"author":{"id":"U_kgDOBZ7jXA","is_bot":false,"login":"Supermonters","name":"Chi Dung Nguyen"},"headRefName":"CDN-MenuItemReview-create-db","number":70,"title":"feat: add MenuItemReview database table","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/70"}]
