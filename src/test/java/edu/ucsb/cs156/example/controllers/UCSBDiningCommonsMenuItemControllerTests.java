@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -200,6 +201,101 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
 
     // Assert
     verify(menuItemRepository, times(1)).findById(eq(999L));
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBDiningCommonsMenuItem with id 999 not found", json.get("message"));
+  }
+
+  // PUT tests — Issue #11
+
+  @Test
+  public void logged_out_users_cannot_put() throws Exception {
+    mockMvc
+        .perform(
+            put("/api/ucsbdiningcommonsmenuitems")
+                .param("id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_put() throws Exception {
+    mockMvc
+        .perform(
+            put("/api/ucsbdiningcommonsmenuitems")
+                .param("id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_update_existing_item() throws Exception {
+    UCSBDiningCommonsMenuItem original =
+        UCSBDiningCommonsMenuItem.builder()
+            .id(1L)
+            .diningCommonsCode("carrillo")
+            .name("Chicken Salad")
+            .station("Entrees")
+            .build();
+
+    UCSBDiningCommonsMenuItem updated =
+        UCSBDiningCommonsMenuItem.builder()
+            .id(1L)
+            .diningCommonsCode("ortega")
+            .name("Grilled Chicken Salad")
+            .station("Salad Bar")
+            .build();
+
+    when(menuItemRepository.findById(eq(1L))).thenReturn(Optional.of(original));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/ucsbdiningcommonsmenuitems")
+                    .param("id", "1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(updated))
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemRepository, times(1)).findById(1L);
+    verify(menuItemRepository, times(1)).save(updated);
+
+    assertEquals(mapper.writeValueAsString(updated), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_gets_404_when_updating_nonexistent_item() throws Exception {
+    UCSBDiningCommonsMenuItem incoming =
+        UCSBDiningCommonsMenuItem.builder()
+            .diningCommonsCode("ortega")
+            .name("Grilled Chicken Salad")
+            .station("Entrees")
+            .build();
+
+    when(menuItemRepository.findById(eq(999L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/ucsbdiningcommonsmenuitems")
+                    .param("id", "999")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(incoming))
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemRepository, times(1)).findById(999L);
 
     Map<String, Object> json = responseToJson(response);
     assertEquals("EntityNotFoundException", json.get("type"));
