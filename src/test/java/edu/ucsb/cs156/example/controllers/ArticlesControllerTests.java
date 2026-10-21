@@ -1,0 +1,167 @@
+package edu.ucsb.cs156.example.controllers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import edu.ucsb.cs156.example.ControllerTestCase;
+import edu.ucsb.cs156.example.entities.Articles;
+import edu.ucsb.cs156.example.repositories.ArticlesRepository;
+import edu.ucsb.cs156.example.repositories.UserRepository;
+import edu.ucsb.cs156.example.testconfig.TestConfig;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MvcResult;
+
+@WebMvcTest(controllers = ArticlesController.class)
+@Import(TestConfig.class)
+public class ArticlesControllerTests extends ControllerTestCase {
+
+  @MockitoBean ArticlesRepository articlesRepository;
+
+  @MockitoBean UserRepository userRepository;
+
+  // Test 1: Logged-out users cannot GET all articles
+
+  @Test
+  public void logged_out_users_cannot_get_all() throws Exception {
+    mockMvc.perform(get("/api/articles/all")).andExpect(status().is(403));
+  }
+
+  // Test 2: Logged-in users can GET all articles
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_all() throws Exception {
+    mockMvc.perform(get("/api/articles/all")).andExpect(status().is(200));
+  }
+
+  // Test 3: Logged-out users cannot POST
+
+  @Test
+  public void logged_out_users_cannot_post() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/articles/post")
+                .param("title", "Spring Boot Guide")
+                .param("url", "https://spring.io")
+                .param("explanation", "Helpful Spring Boot reference")
+                .param("email", "student@ucsb.edu")
+                .param("dateAdded", "2026-10-20T14:30:00")
+                .with(csrf()))
+        .andExpect(status().is(403));
+  }
+
+  // Test 4: Regular users cannot POST
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_regular_users_cannot_post() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/articles/post")
+                .param("title", "Spring Boot Guide")
+                .param("url", "https://spring.io")
+                .param("explanation", "Helpful Spring Boot reference")
+                .param("email", "student@ucsb.edu")
+                .param("dateAdded", "2026-10-20T14:30:00")
+                .with(csrf()))
+        .andExpect(status().is(403));
+  }
+
+  // Test 5: GET all returns the correct articles
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_can_get_all_articles() throws Exception {
+
+    LocalDateTime date1 = LocalDateTime.parse("2026-10-20T14:30:00");
+    LocalDateTime date2 = LocalDateTime.parse("2026-10-21T10:00:00");
+
+    Articles article1 =
+        Articles.builder()
+            .id(1L)
+            .title("Spring Boot Guide")
+            .url("https://spring.io")
+            .explanation("Helpful Spring Boot reference")
+            .email("student@ucsb.edu")
+            .dateAdded(date1)
+            .build();
+
+    Articles article2 =
+        Articles.builder()
+            .id(2L)
+            .title("React Testing Guide")
+            .url("https://react.dev")
+            .explanation("Helpful React reference")
+            .email("student2@ucsb.edu")
+            .dateAdded(date2)
+            .build();
+
+    ArrayList<Articles> expectedArticles = new ArrayList<>();
+    expectedArticles.addAll(Arrays.asList(article1, article2));
+
+    when(articlesRepository.findAll()).thenReturn(expectedArticles);
+
+    MvcResult response =
+        mockMvc.perform(get("/api/articles/all")).andExpect(status().isOk()).andReturn();
+
+    verify(articlesRepository, times(1)).findAll();
+
+    String expectedJson = mapper.writeValueAsString(expectedArticles);
+    String responseString = response.getResponse().getContentAsString();
+
+    assertEquals(expectedJson, responseString);
+  }
+
+  // Test 6: Admin can POST a new article
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void an_admin_user_can_post_a_new_article() throws Exception {
+
+    LocalDateTime date = LocalDateTime.parse("2026-10-20T14:30:00");
+
+    Articles article =
+        Articles.builder()
+            .title("Spring Boot Guide")
+            .url("https://spring.io")
+            .explanation("Helpful Spring Boot reference")
+            .email("student@ucsb.edu")
+            .dateAdded(date)
+            .build();
+
+    when(articlesRepository.save(eq(article))).thenReturn(article);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post("/api/articles/post")
+                    .param("title", "Spring Boot Guide")
+                    .param("url", "https://spring.io")
+                    .param("explanation", "Helpful Spring Boot reference")
+                    .param("email", "student@ucsb.edu")
+                    .param("dateAdded", "2026-10-20T14:30:00")
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(articlesRepository, times(1)).save(article);
+
+    String expectedJson = mapper.writeValueAsString(article);
+    String responseString = response.getResponse().getContentAsString();
+
+    assertEquals(expectedJson, responseString);
+  }
+}
