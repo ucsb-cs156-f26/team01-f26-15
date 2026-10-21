@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -101,5 +102,28 @@ public class UCSBDiningCommonsMenuItemController extends ApiController {
     ucsbDiningCommonsMenuItemRepository.save(item);
 
     return item;
+  }
+
+  /**
+   * Delete a UCSB dining commons menu item by ID.
+   *
+   * @param id the ID of the item to delete
+   * @return a message confirming deletion
+   */
+  @Operation(summary = "Delete a UCSB dining commons menu item by ID")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public Object deleteUCSBDiningCommonsMenuItem(
+      @Parameter(name = "id", description = "ID of the menu item to delete") @RequestParam
+          Long id) {
+
+    UCSBDiningCommonsMenuItem item =
+        ucsbDiningCommonsMenuItemRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBDiningCommonsMenuItem.class, id));
+
+    ucsbDiningCommonsMenuItemRepository.delete(item);
+
+    return genericMessage("UCSBDiningCommonsMenuItem with id %s deleted".formatted(id));
   }
 }

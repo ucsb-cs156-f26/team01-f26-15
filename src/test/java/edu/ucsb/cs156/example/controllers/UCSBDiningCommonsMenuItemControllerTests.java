@@ -301,4 +301,67 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
     assertEquals("EntityNotFoundException", json.get("type"));
     assertEquals("UCSBDiningCommonsMenuItem with id 999 not found", json.get("message"));
   }
+
+  // DELETE tests — Issue #12
+
+  @Test
+  public void logged_out_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(delete("/api/ucsbdiningcommonsmenuitems").param("id", "1").with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(delete("/api/ucsbdiningcommonsmenuitems").param("id", "1").with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_delete_existing_item() throws Exception {
+    UCSBDiningCommonsMenuItem item =
+        UCSBDiningCommonsMenuItem.builder()
+            .id(1L)
+            .diningCommonsCode("ortega")
+            .name("Chicken Salad")
+            .station("Entrees")
+            .build();
+
+    when(menuItemRepository.findById(eq(1L))).thenReturn(Optional.of(item));
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/ucsbdiningcommonsmenuitems").param("id", "1").with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemRepository, times(1)).findById(1L);
+    verify(menuItemRepository, times(1)).delete(item);
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("UCSBDiningCommonsMenuItem with id 1 deleted", json.get("message"));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_gets_404_when_deleting_nonexistent_item() throws Exception {
+    when(menuItemRepository.findById(eq(999L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/ucsbdiningcommonsmenuitems").param("id", "999").with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemRepository, times(1)).findById(999L);
+    verify(menuItemRepository, times(0))
+        .delete(org.mockito.ArgumentMatchers.any(UCSBDiningCommonsMenuItem.class));
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBDiningCommonsMenuItem with id 999 not found", json.get("message"));
+  }
 }
