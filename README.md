@@ -1,15 +1,13 @@
-# STARTER-team01
+# team01-f26-15
 
-Instructions: <https://ucsb-cs156.github.io/s26/lab/team01.html>
+Instructions: <https://ucsb-cs156.github.io/f26/lab/team01.html>
 
-TODO: change heading above to your repo name, e.g. `# team01-s26-17`
-
-TODO: Add a link to the deployed Dokku app for your team here, e.g.
+Documentation and test coverage: <https://ucsb-cs156-f26.github.io/team01-f26-15/>
 
 Deployments:
 
-* Prod: <https://team01.dokku-17.cs.ucsb.edu>
-* QA: <https://team01-qa.dokku-17.cs.ucsb.edu>
+* Prod: <https://team01.dokku-15.cs.ucsb.edu>
+* QA: <https://team01-qa.dokku-15.cs.ucsb.edu>
 
 TODO: Fill in this table with correct information. 
 
@@ -86,9 +84,9 @@ See: [/docs/dokku.md](/docs/dokku.md)
 
 To access the swagger API endpoints, use:
 
-* <http://localhost:8080/swagger-ui/index.html>
-
-Or add `/swagger-ui/index.html` to the URL of your dokku deployment.
+* Localhost: <http://localhost:8080/swagger-ui/index.html>
+* Prod: <https://team01.dokku-15.cs.ucsb.edu/swagger-ui/index.html>
+* QA: <https://team01-qa.dokku-15.cs.ucsb.edu/swagger-ui/index.html>
 
 # SQL Database access
 
