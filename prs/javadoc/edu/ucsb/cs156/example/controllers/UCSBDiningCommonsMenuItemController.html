@@ -66,6 +66,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#allUCSBDiningCommonsMenuItems()" tabindex="0">allUCSBDiningCommonsMenuItems()</a></li>
 <li><a href="#getById(java.lang.Long)" tabindex="0">getById(Long)</a></li>
 <li><a href="#postUCSBDiningCommonsMenuItem(java.lang.String,java.lang.String,java.lang.String)" tabindex="0">postUCSBDiningCommonsMenuItem(String, String, String)</a></li>
+<li><a href="#updateUCSBDiningCommonsMenuItem(java.lang.Long,edu.ucsb.cs156.example.entities.UCSBDiningCommonsMenuItem)" tabindex="0">updateUCSBDiningCommonsMenuItem(Long, UCSBDiningCommonsMenuItem)</a></li>
 </ol>
 </li>
 </ol>
@@ -132,6 +133,10 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create a new UCSB dining commons menu item.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateUCSBDiningCommonsMenuItem(java.lang.Long,edu.ucsb.cs156.example.entities.UCSBDiningCommonsMenuItem)" class="member-name-link">updateUCSBDiningCommonsMenuItem</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&nbsp;id,
+ @Valid <a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a>&nbsp;incoming)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -222,6 +227,19 @@ loadScripts(document, 'script');</script>
 <dt>Returns:</dt>
 <dd>the saved menu item</dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateUCSBDiningCommonsMenuItem(java.lang.Long,edu.ucsb.cs156.example.entities.UCSBDiningCommonsMenuItem)">
+<h3>updateUCSBDiningCommonsMenuItem</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PutMapping("")
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a></span>&nbsp;<span class="element-name">updateUCSBDiningCommonsMenuItem</span><wbr><span class="parameters">(@RequestParam
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&nbsp;id,
+ @RequestBody @Valid
+ @Valid <a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a>&nbsp;incoming)</span></div>
 </div>
 </section>
 </li>
