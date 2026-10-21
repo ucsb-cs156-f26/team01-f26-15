@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -222,5 +223,138 @@ public class ArticlesControllerTests extends ControllerTestCase {
 
     assertEquals("EntityNotFoundException", json.get("type"));
     assertEquals("Articles with id 123 not found", json.get("message"));
+  }
+
+  // Test 10: Logged-out users cannot PUT
+
+  @Test
+  public void logged_out_users_cannot_put() throws Exception {
+    Articles incoming =
+        Articles.builder()
+            .title("Updated Article")
+            .url("https://example.com")
+            .explanation("Updated explanation")
+            .email("student@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2026-10-21T10:00:00"))
+            .build();
+
+    mockMvc
+        .perform(
+            put("/api/articles")
+                .param("id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(incoming))
+                .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  // Test 11: Regular users cannot PUT
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_regular_users_cannot_put() throws Exception {
+    Articles incoming =
+        Articles.builder()
+            .title("Updated Article")
+            .url("https://example.com")
+            .explanation("Updated explanation")
+            .email("student@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2026-10-21T10:00:00"))
+            .build();
+
+    mockMvc
+        .perform(
+            put("/api/articles")
+                .param("id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(incoming))
+                .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  // Test 12: Admin can edit an existing article
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_can_edit_an_existing_article() throws Exception {
+
+    Articles original =
+        Articles.builder()
+            .id(1L)
+            .title("Original Title")
+            .url("https://old.example.com")
+            .explanation("Original explanation")
+            .email("old@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2026-10-20T14:30:00"))
+            .build();
+
+    Articles edited =
+        Articles.builder()
+            .id(1L)
+            .title("Updated Title")
+            .url("https://new.example.com")
+            .explanation("Updated explanation")
+            .email("new@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2026-10-21T10:00:00"))
+            .build();
+
+    String requestBody = mapper.writeValueAsString(edited);
+
+    when(articlesRepository.findById(eq(1L))).thenReturn(Optional.of(original));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/articles")
+                    .param("id", "1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(articlesRepository, times(1)).findById(1L);
+    verify(articlesRepository, times(1)).save(edited);
+
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(requestBody, responseString);
+  }
+
+  // Test 13: Admin cannot edit a nonexistent article
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admin_cannot_edit_article_that_does_not_exist() throws Exception {
+
+    Articles incoming =
+        Articles.builder()
+            .title("Updated Title")
+            .url("https://new.example.com")
+            .explanation("Updated explanation")
+            .email("new@ucsb.edu")
+            .dateAdded(LocalDateTime.parse("2026-10-21T10:00:00"))
+            .build();
+
+    String requestBody = mapper.writeValueAsString(incoming);
+
+    when(articlesRepository.findById(eq(999L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/articles")
+                    .param("id", "999")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(articlesRepository, times(1)).findById(999L);
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("Articles with id 999 not found", json.get("message"));
   }
 }
