@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -95,6 +96,33 @@ public class MenuItemReviewController extends ApiController {
     review.setComments(comments);
 
     return menuItemReviewRepository.save(review);
+  }
+
+  /**
+   * Delete a menu item review.
+   *
+   * @param id the ID of the review to delete
+   * @return a message confirming the deletion
+   * @throws EntityNotFoundException if the review does not exist
+   */
+  @Operation(
+      summary = "Delete a menu item review",
+      description =
+          "Deletes the review identified by the query parameter ID, not the menu item ID. For"
+              + " example, id=123 returns 200 with message 'record 123 deleted', or 404 with"
+              + " message 'record 123 not found' if the review does not exist. Requires an admin"
+              + " login.")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public Object deleteMenuItemReview(
+      @Parameter(name = "id", description = "ID of the review to delete") @RequestParam Long id) {
+    MenuItemReview review =
+        menuItemReviewRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("record %s not found".formatted(id)));
+
+    menuItemReviewRepository.delete(review);
+    return genericMessage("record %s deleted".formatted(id));
   }
 
   /**
