@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
 import edu.ucsb.cs156.example.entities.UCSBDiningCommonsMenuItem;
+import edu.ucsb.cs156.example.errors.EntityNotFoundException;
 import edu.ucsb.cs156.example.repositories.UCSBDiningCommonsMenuItemRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,6 +23,11 @@ public class UCSBDiningCommonsMenuItemController extends ApiController {
 
   @Autowired UCSBDiningCommonsMenuItemRepository ucsbDiningCommonsMenuItemRepository;
 
+  /**
+   * List all UCSB dining commons menu items.
+   *
+   * @return all menu items
+   */
   @Operation(summary = "List all UCSB dining commons menu items")
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("/all")
@@ -29,6 +35,34 @@ public class UCSBDiningCommonsMenuItemController extends ApiController {
     return ucsbDiningCommonsMenuItemRepository.findAll();
   }
 
+  /**
+   * Get a single UCSB dining commons menu item by ID.
+   *
+   * @param id the ID of the menu item
+   * @return the requested menu item
+   */
+  @Operation(summary = "Get a single UCSB dining commons menu item by ID")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("")
+  public UCSBDiningCommonsMenuItem getById(
+      @Parameter(name = "id", description = "ID of the menu item") @RequestParam Long id) {
+
+    UCSBDiningCommonsMenuItem item =
+        ucsbDiningCommonsMenuItemRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBDiningCommonsMenuItem.class, id));
+
+    return item;
+  }
+
+  /**
+   * Create a new UCSB dining commons menu item.
+   *
+   * @param diningCommonsCode dining commons code
+   * @param name menu item name
+   * @param station serving station
+   * @return the saved menu item
+   */
   @Operation(summary = "Create a new UCSB dining commons menu item")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PostMapping("/post")

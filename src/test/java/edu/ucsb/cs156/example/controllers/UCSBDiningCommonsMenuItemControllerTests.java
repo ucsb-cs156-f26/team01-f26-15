@@ -16,6 +16,8 @@ import edu.ucsb.cs156.example.repositories.UserRepository;
 import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -148,5 +150,59 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
     String responseJson = response.getResponse().getContentAsString();
 
     assertEquals(expectedJson, responseJson);
+  }
+
+  @Test
+  public void logged_out_users_cannot_get_by_id() throws Exception {
+    mockMvc
+        .perform(get("/api/ucsbdiningcommonsmenuitems").param("id", "1"))
+        .andExpect(status().isForbidden());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_can_get_by_id_when_item_exists() throws Exception {
+    // Arrange
+    UCSBDiningCommonsMenuItem item =
+        UCSBDiningCommonsMenuItem.builder()
+            .id(1L)
+            .diningCommonsCode("ortega")
+            .name("Chicken Salad")
+            .station("Entrees")
+            .build();
+
+    when(menuItemRepository.findById(eq(1L))).thenReturn(Optional.of(item));
+
+    // Act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/ucsbdiningcommonsmenuitems").param("id", "1"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Assert
+    verify(menuItemRepository, times(1)).findById(eq(1L));
+    assertEquals(mapper.writeValueAsString(item), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_gets_404_when_item_does_not_exist() throws Exception {
+    // Arrange
+    when(menuItemRepository.findById(eq(999L))).thenReturn(Optional.empty());
+
+    // Act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/ucsbdiningcommonsmenuitems").param("id", "999"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    // Assert
+    verify(menuItemRepository, times(1)).findById(eq(999L));
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBDiningCommonsMenuItem with id 999 not found", json.get("message"));
   }
 }
