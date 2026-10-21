@@ -1,0 +1,360 @@
+package edu.ucsb.cs156.example.controllers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import edu.ucsb.cs156.example.ControllerTestCase;
+import edu.ucsb.cs156.example.entities.MenuItemReview;
+import edu.ucsb.cs156.example.repositories.MenuItemReviewRepository;
+import edu.ucsb.cs156.example.repositories.UserRepository;
+import edu.ucsb.cs156.example.testconfig.TestConfig;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+@WebMvcTest(controllers = MenuItemReviewController.class)
+@Import(TestConfig.class)
+public class MenuItemReviewControllerTests extends ControllerTestCase {
+
+  @MockitoBean MenuItemReviewRepository menuItemReviewRepository;
+
+  @MockitoBean UserRepository userRepository;
+
+  @Test
+  public void logged_out_users_cannot_get_by_id() throws Exception {
+    mockMvc.perform(get("/api/MenuItemReview").param("id", "47")).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_a_review_by_id() throws Exception {
+    MenuItemReview review =
+        MenuItemReview.builder()
+            .id(47L)
+            .itemId(7L)
+            .reviewerEmail("reviewer@example.com")
+            .stars(4)
+            .dateReviewed(LocalDateTime.parse("2026-10-21T00:00:00"))
+            .comments("Fresh and tasty")
+            .build();
+    when(menuItemReviewRepository.findById(eq(47L))).thenReturn(Optional.of(review));
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/MenuItemReview").param("id", "47"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(47L));
+    assertEquals(mapper.writeValueAsString(review), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void missing_review_ids_return_not_found() throws Exception {
+    when(menuItemReviewRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/MenuItemReview").param("id", "123"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(123L));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("MenuItemReview with id 123 not found", json.get("message"));
+  }
+
+  @Test
+  public void logged_out_users_cannot_get_all() throws Exception {
+    mockMvc.perform(get("/api/MenuItemReview/all")).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_an_empty_list() throws Exception {
+    when(menuItemReviewRepository.findAll()).thenReturn(List.of());
+
+    MvcResult response =
+        mockMvc.perform(get("/api/MenuItemReview/all")).andExpect(status().isOk()).andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findAll();
+    assertEquals("[]", response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_all_reviews() throws Exception {
+    MenuItemReview first =
+        MenuItemReview.builder()
+            .id(1L)
+            .itemId(7L)
+            .reviewerEmail("first@example.com")
+            .stars(5)
+            .dateReviewed(LocalDateTime.parse("2026-10-20T18:00:00"))
+            .comments("Enjoyed this menu item")
+            .build();
+    MenuItemReview second =
+        MenuItemReview.builder()
+            .id(2L)
+            .itemId(7L)
+            .reviewerEmail("second@example.com")
+            .stars(0)
+            .dateReviewed(LocalDateTime.parse("2026-10-20T19:00:00"))
+            .comments("Would choose something else")
+            .build();
+    List<MenuItemReview> expected = List.of(first, second);
+    when(menuItemReviewRepository.findAll()).thenReturn(expected);
+
+    MvcResult response =
+        mockMvc.perform(get("/api/MenuItemReview/all")).andExpect(status().isOk()).andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findAll();
+    assertEquals(mapper.writeValueAsString(expected), response.getResponse().getContentAsString());
+  }
+
+  @Test
+  public void logged_out_users_cannot_post() throws Exception {
+    mockMvc.perform(reviewPost().with(csrf())).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_post() throws Exception {
+    mockMvc.perform(reviewPost().with(csrf())).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_cannot_post_without_csrf() throws Exception {
+    mockMvc.perform(reviewPost()).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_can_post_a_review_and_receive_the_saved_record() throws Exception {
+    LocalDateTime dateReviewed = LocalDateTime.parse("2026-10-20T18:00:00");
+    MenuItemReview incoming =
+        MenuItemReview.builder()
+            .itemId(7L)
+            .reviewerEmail("reviewer@example.com")
+            .stars(4)
+            .dateReviewed(dateReviewed)
+            .comments("Fresh and tasty")
+            .build();
+    MenuItemReview saved =
+        MenuItemReview.builder()
+            .id(42L)
+            .itemId(7L)
+            .reviewerEmail("reviewer@example.com")
+            .stars(4)
+            .dateReviewed(dateReviewed)
+            .comments("Fresh and tasty")
+            .build();
+    when(menuItemReviewRepository.save(eq(incoming))).thenReturn(saved);
+
+    MvcResult response =
+        mockMvc.perform(reviewPost().with(csrf())).andExpect(status().isOk()).andReturn();
+
+    verify(menuItemReviewRepository, times(1)).save(eq(incoming));
+    assertEquals(mapper.writeValueAsString(saved), response.getResponse().getContentAsString());
+  }
+
+  @Test
+  public void logged_out_users_cannot_put() throws Exception {
+    mockMvc.perform(reviewPut(47L, editedReview()).with(csrf())).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_put() throws Exception {
+    mockMvc.perform(reviewPut(47L, editedReview()).with(csrf())).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_cannot_put_without_csrf() throws Exception {
+    mockMvc.perform(reviewPut(47L, editedReview())).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_can_update_all_review_fields_while_preserving_the_id() throws Exception {
+    MenuItemReview original =
+        MenuItemReview.builder()
+            .id(47L)
+            .itemId(7L)
+            .reviewerEmail("original@example.com")
+            .stars(0)
+            .dateReviewed(LocalDateTime.parse("2026-10-20T12:00:00"))
+            .comments("Original review")
+            .build();
+    MenuItemReview incoming = editedReview();
+    MenuItemReview expected =
+        MenuItemReview.builder()
+            .id(47L)
+            .itemId(29L)
+            .reviewerEmail("updated@example.com")
+            .stars(5)
+            .dateReviewed(LocalDateTime.parse("2026-10-21T18:30:00"))
+            .comments("Updated review")
+            .build();
+    when(menuItemReviewRepository.findById(eq(47L))).thenReturn(Optional.of(original));
+    when(menuItemReviewRepository.save(eq(expected))).thenReturn(expected);
+
+    MvcResult response =
+        mockMvc
+            .perform(reviewPut(47L, incoming).with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(47L));
+    verify(menuItemReviewRepository, times(1)).save(eq(expected));
+    assertEquals(mapper.writeValueAsString(expected), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_cannot_update_a_review_that_does_not_exist() throws Exception {
+    when(menuItemReviewRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(reviewPut(123L, editedReview()).with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(123L));
+    verify(menuItemReviewRepository, never()).save(any());
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("MenuItemReview with id 123 not found", json.get("message"));
+  }
+
+  @Test
+  public void logged_out_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(delete("/api/MenuItemReview").param("id", "47").with(csrf()))
+        .andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void regular_users_cannot_delete() throws Exception {
+    mockMvc
+        .perform(delete("/api/MenuItemReview").param("id", "47").with(csrf()))
+        .andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_cannot_delete_without_csrf() throws Exception {
+    mockMvc
+        .perform(delete("/api/MenuItemReview").param("id", "47"))
+        .andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_can_delete_an_existing_review() throws Exception {
+    MenuItemReview review =
+        MenuItemReview.builder()
+            .id(47L)
+            .itemId(7L)
+            .reviewerEmail("reviewer@example.com")
+            .stars(4)
+            .dateReviewed(LocalDateTime.parse("2026-10-21T00:00:00"))
+            .comments("Review to delete")
+            .build();
+    when(menuItemReviewRepository.findById(eq(47L))).thenReturn(Optional.of(review));
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/MenuItemReview").param("id", "47").with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(47L));
+    verify(menuItemReviewRepository, times(1)).delete(eq(review));
+    assertEquals(Map.of("message", "record 47 deleted"), responseToJson(response));
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void admins_cannot_delete_a_review_that_does_not_exist() throws Exception {
+    when(menuItemReviewRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(delete("/api/MenuItemReview").param("id", "123").with(csrf()))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(123L));
+    verify(menuItemReviewRepository, never()).delete(any());
+    assertEquals(
+        Map.of("type", "EntityNotFoundException", "message", "record 123 not found"),
+        responseToJson(response));
+  }
+
+  private MenuItemReview editedReview() {
+    return MenuItemReview.builder()
+        .id(999L)
+        .itemId(29L)
+        .reviewerEmail("updated@example.com")
+        .stars(5)
+        .dateReviewed(LocalDateTime.parse("2026-10-21T18:30:00"))
+        .comments("Updated review")
+        .build();
+  }
+
+  private MockHttpServletRequestBuilder reviewPut(long id, MenuItemReview incoming)
+      throws Exception {
+    return put("/api/MenuItemReview")
+        .param("id", Long.toString(id))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(mapper.writeValueAsString(incoming));
+  }
+
+  private MockHttpServletRequestBuilder reviewPost() {
+    return post("/api/MenuItemReview/post")
+        .param("itemId", "7")
+        .param("reviewerEmail", "reviewer@example.com")
+        .param("stars", "4")
+        .param("dateReviewed", "2026-10-20T18:00:00")
+        .param("comments", "Fresh and tasty");
+  }
+}
