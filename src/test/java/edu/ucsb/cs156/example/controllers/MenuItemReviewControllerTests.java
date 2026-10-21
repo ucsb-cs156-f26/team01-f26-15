@@ -18,6 +18,8 @@ import edu.ucsb.cs156.example.repositories.UserRepository;
 import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -33,6 +35,53 @@ public class MenuItemReviewControllerTests extends ControllerTestCase {
   @MockitoBean MenuItemReviewRepository menuItemReviewRepository;
 
   @MockitoBean UserRepository userRepository;
+
+  @Test
+  public void logged_out_users_cannot_get_by_id() throws Exception {
+    mockMvc.perform(get("/api/MenuItemReview").param("id", "47")).andExpect(status().isForbidden());
+    verifyNoInteractions(menuItemReviewRepository);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_users_can_get_a_review_by_id() throws Exception {
+    MenuItemReview review =
+        MenuItemReview.builder()
+            .id(47L)
+            .itemId(7L)
+            .reviewerEmail("reviewer@example.com")
+            .stars(4)
+            .dateReviewed(LocalDateTime.parse("2026-10-21T00:00:00"))
+            .comments("Fresh and tasty")
+            .build();
+    when(menuItemReviewRepository.findById(eq(47L))).thenReturn(Optional.of(review));
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/MenuItemReview").param("id", "47"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(47L));
+    assertEquals(mapper.writeValueAsString(review), response.getResponse().getContentAsString());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void missing_review_ids_return_not_found() throws Exception {
+    when(menuItemReviewRepository.findById(eq(123L))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/MenuItemReview").param("id", "123"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(menuItemReviewRepository, times(1)).findById(eq(123L));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("MenuItemReview with id 123 not found", json.get("message"));
+  }
 
   @Test
   public void logged_out_users_cannot_get_all() throws Exception {

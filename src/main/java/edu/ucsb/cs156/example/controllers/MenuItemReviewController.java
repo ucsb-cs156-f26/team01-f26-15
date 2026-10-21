@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
 import edu.ucsb.cs156.example.entities.MenuItemReview;
+import edu.ucsb.cs156.example.errors.EntityNotFoundException;
 import edu.ucsb.cs156.example.repositories.MenuItemReviewRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,6 +25,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class MenuItemReviewController extends ApiController {
 
   @Autowired MenuItemReviewRepository menuItemReviewRepository;
+
+  /**
+   * Get a single menu item review by its ID.
+   *
+   * @param id the review ID
+   * @return the matching review
+   * @throws EntityNotFoundException if the review does not exist
+   */
+  @Operation(
+      summary = "Get a single menu item review",
+      description = "Returns the review with the given ID, or 404 if it does not exist.")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("")
+  public MenuItemReview getById(
+      @Parameter(name = "id", description = "Review ID, not the menu item ID") @RequestParam
+          Long id) {
+
+    return menuItemReviewRepository
+        .findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(MenuItemReview.class, id));
+  }
 
   /**
    * List all menu item reviews.
