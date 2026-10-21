@@ -14,7 +14,7 @@ TODO: Fill in this table with correct information.
 | Table                     | Name         | Github Id |
 |---------------------------|--------------|-----------|
 | UCSBDiningCommonsMenuItem |              |           |
-| UCSBOrganization          |              |           |
+| UCSBOrganization          | Haasini      | HaasiniY  |
 | RecommendationRequest     |              |           |
 | MenuItemReview            |              |           |
 | HelpRequest               |              |           |
