@@ -240,7 +240,7 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
     UCSBDiningCommonsMenuItem original =
         UCSBDiningCommonsMenuItem.builder()
             .id(1L)
-            .diningCommonsCode("ortega")
+            .diningCommonsCode("carrillo")
             .name("Chicken Salad")
             .station("Entrees")
             .build();
