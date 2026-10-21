@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,8 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = &quot;RecommendationRequests&quot;)
 @RequestMapping(&quot;/api/recommendationrequests&quot;)
 @RestController
-<span class="fc" id="L28">@Slf4j</span>
-<span class="fc" id="L29">public class RecommendationRequestController extends ApiController {</span>
+<span class="fc" id="L29">@Slf4j</span>
+<span class="fc" id="L30">public class RecommendationRequestController extends ApiController {</span>
 
   @Autowired RecommendationRequestRepository recommendationRequestRepository;
 
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
   @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
   @GetMapping(&quot;/all&quot;)
   public Iterable&lt;RecommendationRequest&gt; allRecommendationRequests() {
-<span class="fc" id="L42">    return recommendationRequestRepository.findAll();</span>
+<span class="fc" id="L43">    return recommendationRequestRepository.findAll();</span>
   }
 
   /**
@@ -52,9 +53,9 @@ import org.springframework.web.bind.annotation.RestController;
   @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
   @GetMapping(&quot;&quot;)
   public RecommendationRequest getById(@Parameter(name = &quot;id&quot;) @RequestParam Long id) {
-<span class="fc" id="L55">    return recommendationRequestRepository</span>
-<span class="fc" id="L56">        .findById(id)</span>
-<span class="fc" id="L57">        .orElseThrow(() -&gt; new EntityNotFoundException(RecommendationRequest.class, id));</span>
+<span class="fc" id="L56">    return recommendationRequestRepository</span>
+<span class="fc" id="L57">        .findById(id)</span>
+<span class="fc" id="L58">        .orElseThrow(() -&gt; new EntityNotFoundException(RecommendationRequest.class, id));</span>
   }
 
   /**
@@ -91,16 +92,16 @@ import org.springframework.web.bind.annotation.RestController;
       throws JsonProcessingException {
 
     RecommendationRequest recommendationRequest =
-<span class="fc" id="L94">        RecommendationRequest.builder()</span>
-<span class="fc" id="L95">            .requesterEmail(requesterEmail)</span>
-<span class="fc" id="L96">            .professorEmail(professorEmail)</span>
-<span class="fc" id="L97">            .explanation(explanation)</span>
-<span class="fc" id="L98">            .dateRequested(dateRequested)</span>
-<span class="fc" id="L99">            .dateNeeded(dateNeeded)</span>
-<span class="fc" id="L100">            .done(done)</span>
-<span class="fc" id="L101">            .build();</span>
+<span class="fc" id="L95">        RecommendationRequest.builder()</span>
+<span class="fc" id="L96">            .requesterEmail(requesterEmail)</span>
+<span class="fc" id="L97">            .professorEmail(professorEmail)</span>
+<span class="fc" id="L98">            .explanation(explanation)</span>
+<span class="fc" id="L99">            .dateRequested(dateRequested)</span>
+<span class="fc" id="L100">            .dateNeeded(dateNeeded)</span>
+<span class="fc" id="L101">            .done(done)</span>
+<span class="fc" id="L102">            .build();</span>
 
-<span class="fc" id="L103">    return recommendationRequestRepository.save(recommendationRequest);</span>
+<span class="fc" id="L104">    return recommendationRequestRepository.save(recommendationRequest);</span>
   }
 
   /**
@@ -117,21 +118,40 @@ import org.springframework.web.bind.annotation.RestController;
       @Parameter(name = &quot;id&quot;) @RequestParam Long id,
       @RequestBody @Valid RecommendationRequest incoming) {
 
-<span class="fc" id="L120">    RecommendationRequest recommendationRequest =</span>
+<span class="fc" id="L121">    RecommendationRequest recommendationRequest =</span>
         recommendationRequestRepository
-<span class="fc" id="L122">            .findById(id)</span>
-<span class="fc" id="L123">            .orElseThrow(() -&gt; new EntityNotFoundException(RecommendationRequest.class, id));</span>
+<span class="fc" id="L123">            .findById(id)</span>
+<span class="fc" id="L124">            .orElseThrow(() -&gt; new EntityNotFoundException(RecommendationRequest.class, id));</span>
 
-<span class="fc" id="L125">    recommendationRequest.setRequesterEmail(incoming.getRequesterEmail());</span>
-<span class="fc" id="L126">    recommendationRequest.setProfessorEmail(incoming.getProfessorEmail());</span>
-<span class="fc" id="L127">    recommendationRequest.setExplanation(incoming.getExplanation());</span>
-<span class="fc" id="L128">    recommendationRequest.setDateRequested(incoming.getDateRequested());</span>
-<span class="fc" id="L129">    recommendationRequest.setDateNeeded(incoming.getDateNeeded());</span>
-<span class="fc" id="L130">    recommendationRequest.setDone(incoming.getDone());</span>
+<span class="fc" id="L126">    recommendationRequest.setRequesterEmail(incoming.getRequesterEmail());</span>
+<span class="fc" id="L127">    recommendationRequest.setProfessorEmail(incoming.getProfessorEmail());</span>
+<span class="fc" id="L128">    recommendationRequest.setExplanation(incoming.getExplanation());</span>
+<span class="fc" id="L129">    recommendationRequest.setDateRequested(incoming.getDateRequested());</span>
+<span class="fc" id="L130">    recommendationRequest.setDateNeeded(incoming.getDateNeeded());</span>
+<span class="fc" id="L131">    recommendationRequest.setDone(incoming.getDone());</span>
 
-<span class="fc" id="L132">    recommendationRequestRepository.save(recommendationRequest);</span>
+<span class="fc" id="L133">    recommendationRequestRepository.save(recommendationRequest);</span>
 
-<span class="fc" id="L134">    return recommendationRequest;</span>
+<span class="fc" id="L135">    return recommendationRequest;</span>
+  }
+
+  /**
+   * Delete a recommendation request
+   *
+   * @param id the id of the recommendation request to delete
+   * @return a message indicating the recommendation request was deleted
+   */
+  @Operation(summary = &quot;Delete a recommendation request&quot;)
+  @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+  @DeleteMapping(&quot;&quot;)
+  public Object deleteRecommendationRequest(@Parameter(name = &quot;id&quot;) @RequestParam Long id) {
+<span class="fc" id="L148">    RecommendationRequest recommendationRequest =</span>
+        recommendationRequestRepository
+<span class="fc" id="L150">            .findById(id)</span>
+<span class="fc" id="L151">            .orElseThrow(() -&gt; new EntityNotFoundException(RecommendationRequest.class, id));</span>
+
+<span class="fc" id="L153">    recommendationRequestRepository.delete(recommendationRequest);</span>
+<span class="fc" id="L154">    return genericMessage(&quot;RecommendationRequest with id %s deleted&quot;.formatted(id));</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>
