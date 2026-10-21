@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -123,5 +124,27 @@ public class ArticlesController extends ApiController {
     articlesRepository.save(article);
 
     return article;
+  }
+
+  /**
+   * Delete an existing article.
+   *
+   * @param id the ID of the article to delete
+   * @return a message confirming the article was deleted
+   */
+  @Operation(summary = "Delete a single article by ID")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public Object deleteArticle(
+      @Parameter(name = "id", description = "ID of the article to delete") @RequestParam Long id) {
+
+    Articles article =
+        articlesRepository
+            .findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(Articles.class, id));
+
+    articlesRepository.delete(article);
+
+    return genericMessage("Articles with id %s deleted".formatted(id));
   }
 }
