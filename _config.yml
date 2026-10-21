@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-f26/team01-f26-15
 owner: ucsb-cs156-f26
 repo_name: team01-f26-15
-pull_requests: [{"author":{"id":"U_kgDOCeRk3A","is_bot":false,"login":"LeoChe126","name":"Leo Che "},"headRefName":"LeoChe-UCSBDiningCommonsMenuItem-delete","number":69,"title":"LeoChe- ucsb dining commons menu item delete","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/69"},{"author":{"id":"U_kgDOCeRk3A","is_bot":false,"login":"LeoChe126","name":"Leo Che "},"headRefName":"LeoChe-UCSBDiningCommonsMenuItem-put","number":68,"title":"Add PUT endpoint for UCSBDiningCommonsMenuItem","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/68"}]
+pull_requests: [{"author":{"id":"U_kgDOCeRk3A","is_bot":false,"login":"LeoChe126","name":"Leo Che "},"headRefName":"LeoChe-UCSBDiningCommonsMenuItem-delete","number":69,"title":"LeoChe- ucsb dining commons menu item delete","url":"https://github.com/ucsb-cs156-f26/team01-f26-15/pull/69"}]
