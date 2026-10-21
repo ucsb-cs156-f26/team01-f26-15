@@ -64,6 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#allUCSBDiningCommonsMenuItems()" tabindex="0">allUCSBDiningCommonsMenuItems()</a></li>
+<li><a href="#getById(java.lang.Long)" tabindex="0">getById(Long)</a></li>
 <li><a href="#postUCSBDiningCommonsMenuItem(java.lang.String,java.lang.String,java.lang.String)" tabindex="0">postUCSBDiningCommonsMenuItem(String, String, String)</a></li>
 </ol>
 </li>
@@ -116,12 +117,21 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Iterable.html" title="class or interface in java.lang" class="external-link">Iterable</a><wbr>&lt;<a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#allUCSBDiningCommonsMenuItems()" class="member-name-link">allUCSBDiningCommonsMenuItems</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">List all UCSB dining commons menu items.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#postUCSBDiningCommonsMenuItem(java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">postUCSBDiningCommonsMenuItem</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;diningCommonsCode,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getById(java.lang.Long)" class="member-name-link">getById</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&nbsp;id)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Get a single UCSB dining commons menu item by ID.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#postUCSBDiningCommonsMenuItem(java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">postUCSBDiningCommonsMenuItem</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;diningCommonsCode,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;station)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create a new UCSB dining commons menu item.</div>
+</div>
 </div>
 </div>
 </div>
@@ -165,6 +175,29 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="annotations">@PreAuthorize("hasRole('ROLE_USER')")
 @GetMapping("/all")
 </span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Iterable.html" title="class or interface in java.lang" class="external-link">Iterable</a>&lt;<a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a>&gt;</span>&nbsp;<span class="element-name">allUCSBDiningCommonsMenuItems</span>()</div>
+<div class="block">List all UCSB dining commons menu items.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>all menu items</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getById(java.lang.Long)">
+<h3>getById</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@PreAuthorize("hasRole('ROLE_USER')")
+@GetMapping("")
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../entities/UCSBDiningCommonsMenuItem.html" title="class in edu.ucsb.cs156.example.entities">UCSBDiningCommonsMenuItem</a></span>&nbsp;<span class="element-name">getById</span><wbr><span class="parameters">(@RequestParam
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&nbsp;id)</span></div>
+<div class="block">Get a single UCSB dining commons menu item by ID.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>id</code> - the ID of the menu item</dd>
+<dt>Returns:</dt>
+<dd>the requested menu item</dd>
+</dl>
 </div>
 </section>
 </li>
@@ -180,6 +213,15 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
  @RequestParam
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;station)</span></div>
+<div class="block">Create a new UCSB dining commons menu item.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>diningCommonsCode</code> - dining commons code</dd>
+<dd><code>name</code> - menu item name</dd>
+<dd><code>station</code> - serving station</dd>
+<dt>Returns:</dt>
+<dd>the saved menu item</dd>
+</dl>
 </div>
 </section>
 </li>
